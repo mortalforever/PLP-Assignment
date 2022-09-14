@@ -14,41 +14,41 @@ public interface IToken {
 	    public record SourceLocation(int line, int column) {}  
 	    
 	    public static enum Kind {
-	    	IDENT,
+	    	IDENT,            //0
 	    	NUM_LIT,
 	    	STRING_LIT,
 	    	BOOLEAN_LIT,   //TRUE, FALSE
-	    	DOT,	// .    	
+	    	DOT,	// .    	4
 	    	COMMA,  // , 
 	    	SEMI,   // ;
 	    	QUOTE,  // "
 	    	LPAREN, // (
-	    	RPAREN, // )
+	    	RPAREN, // )           9
 	    	PLUS,   // +
 	    	MINUS,  // -
 	    	TIMES,  // *
 	    	DIV,    // /
-	    	MOD,    // %
+	    	MOD,    // %         14
 	    	QUESTION,// ?
 	    	BANG,    // !
 	    	ASSIGN, // :=
 	    	EQ,     // =
-	    	NEQ,    // #
+	    	NEQ,    // #         19
 	    	LT,     // <
 	    	LE,     // <=
 	    	GT,     // >
 	    	GE,     // >=
-	    	KW_CONST,
+	    	KW_CONST,           //24
 	    	KW_VAR,
 	    	KW_PROCEDURE,
 	    	KW_CALL,
 	    	KW_BEGIN,
-	    	KW_END,
+	    	KW_END,             //29
 	    	KW_IF,
 	    	KW_THEN,
 	    	KW_WHILE,
 	    	KW_DO,	    	
-	    	EOF,  // used as a sential, does not correspond to input	    	
+	    	EOF,  // used as a sential, does not correspond to input	    	34
 	        ERROR, // use to avoid exceptions if scanning all input at once
 	}
 
@@ -92,5 +92,7 @@ public interface IToken {
 	 * @return String value represented by the characters in this IToken.  The returned String does not include the delimiters, and escape sequences have been handled.
 	 */
 	public String getStringValue();
+
+
 
 }

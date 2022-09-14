@@ -8,6 +8,6 @@ package edu.ufl.cise.plpfa22;
 public class CompilerComponentFactory {
 
 	public static ILexer getLexer(String input) {
-		return new Lexer(input);
+		return new MLexer(input);
 	}
 }

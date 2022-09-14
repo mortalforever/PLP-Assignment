@@ -18,4 +18,6 @@ public interface ILexer {
 	 * @throws LexicalException
 	 */
 	IToken peek() throws LexicalException;  
+	
+	void showString();
 }

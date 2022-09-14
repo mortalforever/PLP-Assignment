@@ -207,10 +207,6 @@ class LexerTest {
 		String expectedText = "\" ...  \\\"  \\\'  \\\\  \""; //almost the same as input, but white space is omitted
 		assertEquals(expectedText,text);		
 	}
-
-	public static void main(String[] args) {
-		System.out.println("11");
-	}
 }
 
 

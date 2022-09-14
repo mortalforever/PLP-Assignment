@@ -1,7 +1,7 @@
 
 package edu.ufl.cise.plpfa22;
 
-public class MLexer {
+public class MLexer implements ILexer {
 
     String s;
     int pos, lineNum;
@@ -12,5 +12,23 @@ public class MLexer {
         lineNum = 1;
 
     }
+    
+    @Override
+    public void showString() {
+    	System.out.println(s);
+    }
 
+	@Override
+	public IToken next() throws LexicalException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public IToken peek() throws LexicalException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+    
 }

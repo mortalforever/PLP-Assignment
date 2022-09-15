@@ -27,21 +27,18 @@ public class Demo {
 		//System.out.println(new String("123\"").length());
 		 **/
 		
-		String init = """
-					  + // this is comment
-					  - // comment
-					  """;
+		String init = "\"\\b \\t \\n \\f \\r \"";
 		//String init = """
 		//			  "\"\\b \\t \\n \\f \\r \""
 		//		      """; 
 		ILexer lexer = new MLexer(init);
 		lexer.showString();
 		IToken token = lexer.next();
-		token = lexer.next();
-		token = lexer.next();
 		//token = lexer.next();
 		//token = lexer.next();
-		System.out.println(token.getKind());
+		//token = lexer.next();
+		//token = lexer.next();
+		//System.out.println(token.getKind());
 		//System.out.println(token.getIntValue());
 		System.out.println(token.getStringValue());
 		System.out.println(token.getSourceLocation());

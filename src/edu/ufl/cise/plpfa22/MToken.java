@@ -36,8 +36,7 @@ public class MToken implements IToken{
 
 	@Override
 	public char[] getText() {
-		// TODO Auto-generated method stub
-		return null;
+		return s.toCharArray();
 	}
 
 	@Override
@@ -52,8 +51,17 @@ public class MToken implements IToken{
 
 	@Override
 	public boolean getBooleanValue() {
-		// TODO Auto-generated method stub
-		return false;
+		boolean n = true;
+		switch (s) {
+			case "TRUE":
+				n = true; 
+				break;
+			case "FALSE":
+				n = false;
+				break;
+		}
+		return n;
+		
 	}
 
 	@Override

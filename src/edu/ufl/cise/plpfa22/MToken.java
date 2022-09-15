@@ -47,7 +47,6 @@ public class MToken implements IToken{
 
 	@Override
 	public int getIntValue() {
-		//System.out.println(s);
 		return Integer.valueOf(s);
 	}
 
@@ -59,8 +58,7 @@ public class MToken implements IToken{
 
 	@Override
 	public String getStringValue() {
-		// TODO Auto-generated method stub
-		return null;
+		return s;
 	}
     
 }

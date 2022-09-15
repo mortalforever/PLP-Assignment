@@ -11,7 +11,7 @@ import edu.ufl.cise.plpfa22.LexerTest;
 public class Demo {
 
 	public static void main(String[] args) throws LexicalException {
-		//String init = "123 \r TRUE Tfedw \"ssss\" ";
+		//String init = ""\"\\b \\t \\n \\f \\r \"";
 		
 		/**
 		String init = "0123 23411232 123224"; 
@@ -27,20 +27,23 @@ public class Demo {
 		//System.out.println(new String("123\"").length());
 		 **/
 		
-		
 		String init = """
-					  .0123,
-					  12	
-				      """; 
+					  + // this is comment
+					  - // comment
+					  """;
+		//String init = """
+		//			  "\"\\b \\t \\n \\f \\r \""
+		//		      """; 
 		ILexer lexer = new MLexer(init);
 		lexer.showString();
 		IToken token = lexer.next();
 		token = lexer.next();
 		token = lexer.next();
-		token = lexer.next();
-		token = lexer.next();
+		//token = lexer.next();
+		//token = lexer.next();
 		System.out.println(token.getKind());
-		System.out.println(token.getIntValue());
+		//System.out.println(token.getIntValue());
+		System.out.println(token.getStringValue());
 		System.out.println(token.getSourceLocation());
 	}
 }

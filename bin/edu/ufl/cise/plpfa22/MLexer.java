@@ -69,7 +69,7 @@ public class MLexer implements ILexer {
 				}
 				else if (n == '.' || n == ',' || n == '(' || n == ')' || n == '+' || n == '-' || n == '*' || 						
 						 n == '/' || n == '%' || n == '?' || n == '!' || n == ':' || n == '=' || n == '#' ||
-					     n == '<' || n == '>' || n == ';'){
+					     n == '<' || n == '>'){
 					String tmp = s.substring(sPos, sPos+1);
 					cnt++;
 					if (sPos + 1 < s.length()) {
@@ -85,8 +85,6 @@ public class MLexer implements ILexer {
 					tokenNow = getRestToken(tmp, lineNum, columnNum);
 					sPos = sPos + cnt;
 					columnNum = columnNum + cnt;
-					cnt = 0;
-					state = 0;
 					isDone = true;
 					break;
 				}
@@ -195,9 +193,9 @@ public class MLexer implements ILexer {
 					else {
 						tokenNow = new MToken(0, s.substring(startPos, startPos+cnt), lineNum, columnNum);
 						sPos = sPos + cnt;
-						columnNum = columnNum + cnt;
 						cnt = 0;
 						state = 0;
+						columnNum = columnNum + cnt;
 						endIdent = true;
 						isDone = true;
 						break;
@@ -206,9 +204,9 @@ public class MLexer implements ILexer {
 					if (isReserved(tmp)) {
 						tokenNow = getReservedToken(tmp, lineNum, columnNum);
 						sPos = sPos + cnt;
-						columnNum = columnNum + cnt;
 						cnt = 0;
 						state = 0;
+						columnNum = columnNum + cnt;
 						endIdent = true;
 						isDone = true;
 						break;
@@ -225,7 +223,7 @@ public class MLexer implements ILexer {
 	}
 
 	@Override
-	public IToken peek() throws LexicalException {    //Still have columnNum problem
+	public IToken peek() throws LexicalException {
 		boolean isDone = false;
 		boolean isEnd = false;
 		boolean endComment = true;
@@ -239,7 +237,7 @@ public class MLexer implements ILexer {
 			case 0:                                    // START state
 				startPos = sPos;
 				cnt = 0;
-				if (startPos >= s.length()) { isDone = true; break; }
+				if (sPos >= s.length()) { isDone = true; break; }
 				if (n == '0') { 
 					state = 1; cnt++; 
 					break;
@@ -251,29 +249,26 @@ public class MLexer implements ILexer {
 				else if (n == ' ' || n == '\t') {
 					//sPos++; 
 					startPos++;
-					//columnNum++; 
-					n = s.charAt(startPos);
+					columnNum++; n = s.charAt(sPos);
 					break;
 				}
 				else if (n == '\n' || n == 'r') {
-					if (n == '\r' & startPos + 1 < s.length() & s.charAt(startPos+1) == '\n') {
-						startPos++;
+					if (n == '\r' & sPos + 1 < s.length() & s.charAt(sPos+1) == '\n') {
+						sPos++;
 					}
 					//sPos++; 
-					//columnNum = 1; 
-					//lineNum++; 
-					n = s.charAt(startPos);
+					columnNum = 1; lineNum++; n = s.charAt(sPos);
 					break;
 				}
 				else if (n == '.' || n == ',' || n == '(' || n == ')' || n == '+' || n == '-' || n == '*' || 						
 						 n == '/' || n == '%' || n == '?' || n == '!' || n == ':' || n == '=' || n == '#' ||
 					     n == '<' || n == '>'){
-					String tmp = s.substring(startPos, startPos+1);
+					String tmp = s.substring(sPos, sPos+1);
 					cnt++;
-					if (startPos + 1 < s.length()) {
-						char nn = s.charAt(startPos + 1);
+					if (sPos + 1 < s.length()) {
+						char nn = s.charAt(sPos + 1);
 						if ((n == ':' || n == '<' || n == '>') & nn == '=') {
-							tmp = s.substring(startPos, startPos+2); 
+							tmp = s.substring(sPos, sPos+2); 
 							cnt++;
 						}
 						if (n == '/' & nn == '/') {
@@ -282,7 +277,7 @@ public class MLexer implements ILexer {
 					}
 					tokenNow = getRestToken(tmp, lineNum, columnNum);
 					//sPos = sPos + cnt;
-					//columnNum = columnNum + cnt;
+					columnNum = columnNum + cnt;
 					isDone = true;
 					break;
 				}
@@ -301,7 +296,7 @@ public class MLexer implements ILexer {
 				//System.out.println("The cnt is:"+cnt);
 				tokenNow = new MToken(1, s.substring(startPos, startPos+cnt), lineNum, columnNum);
 				//sPos = startPos + cnt;
-				//columnNum = columnNum + cnt;
+				columnNum = columnNum + cnt;
 				state = 0; 
 				cnt = 0;
 				isDone = true;
@@ -323,7 +318,7 @@ public class MLexer implements ILexer {
 					//System.out.println("here"+s.substring(startPos, startPos+cnt));
 					tokenNow = new MToken(1, s.substring(startPos, startPos+cnt), lineNum, columnNum);
 					//sPos = startPos + cnt;
-					//columnNum = columnNum + cnt;
+					columnNum = columnNum + cnt;
 					state = 0; 
 					cnt = 0;
 					isDone = true;
@@ -333,8 +328,8 @@ public class MLexer implements ILexer {
 			case 3:
 				//System.out.println("here");
 				while (!endComment) {
-					if (startPos+cnt >= s.length()) { isDone = true; }
-					char nxt = s.charAt(startPos+cnt);
+					if (sPos+cnt >= s.length()) { isDone = true; }
+					char nxt = s.charAt(sPos+cnt);
 					if (nxt != '\n' & nxt != 'r') {
 						cnt++;
 					}
@@ -342,8 +337,8 @@ public class MLexer implements ILexer {
 						state = 0;
 						startPos = startPos + cnt + 1;
 						//sPos = sPos + cnt + 1;
-						//columnNum = 1;
-						//lineNum++;
+						columnNum = 1;
+						lineNum++;
 						endComment = true;
 					}
 				}
@@ -360,7 +355,7 @@ public class MLexer implements ILexer {
 						//System.out.println(isEnd);
 						tokenNow = new MToken(2, s.substring(startPos, startPos+cnt), lineNum, columnNum);
 						//sPos = startPos + cnt;
-						//columnNum = columnNum + cnt;
+						columnNum = columnNum + cnt;
 						cnt = 0; 
 						isDone = true;
 						state = 0;
@@ -388,13 +383,13 @@ public class MLexer implements ILexer {
 			case 5:
 				//System.out.println("here");
 				while (!endIdent) {
-					if (isIdentChar(s.charAt(startPos+cnt))) { cnt++; }
+					if (isIdentChar(s.charAt(sPos+cnt))) { cnt++; }
 					else {
 						tokenNow = new MToken(0, s.substring(startPos, startPos+cnt), lineNum, columnNum);
 						//sPos = sPos + cnt;
 						cnt = 0;
 						state = 0;
-						//columnNum = columnNum + cnt;
+						columnNum = columnNum + cnt;
 						endIdent = true;
 						isDone = true;
 						break;
@@ -405,7 +400,7 @@ public class MLexer implements ILexer {
 						//sPos = sPos + cnt;
 						cnt = 0;
 						state = 0;
-						//columnNum = columnNum + cnt;
+						columnNum = columnNum + cnt;
 						endIdent = true;
 						isDone = true;
 						break;

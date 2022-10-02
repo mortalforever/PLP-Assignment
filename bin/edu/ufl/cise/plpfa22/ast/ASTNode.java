@@ -6,7 +6,7 @@ package edu.ufl.cise.plpfa22.ast;
 import edu.ufl.cise.plpfa22.IToken;
 import edu.ufl.cise.plpfa22.IToken.SourceLocation;
 import edu.ufl.cise.plpfa22.PLPException;
-import edu.ufl.cise.plpfa22.MToken;
+import edu.ufl.cise.plpfa22.Token;
 
 public abstract class ASTNode {
 	

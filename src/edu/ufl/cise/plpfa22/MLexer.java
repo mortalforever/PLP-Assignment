@@ -43,6 +43,8 @@ public class MLexer implements ILexer {
 		if (sPos >= s.length()) { return tokenNow; }   // return EOF
 		char n = s.charAt(sPos);
 		while (!isDone) {
+			//System.out.println(n);
+			//System.out.println("here");
 			switch (state) {
 			case 0:                                    // START state
 				startPos = sPos;
@@ -71,6 +73,7 @@ public class MLexer implements ILexer {
 						 n == '/' || n == '%' || n == '?' || n == '!' || n == ':' || n == '=' || n == '#' ||
 					     n == '<' || n == '>' || n == ';'){
 					String tmp = s.substring(sPos, sPos+1);
+					//System.out.println(n);
 					cnt++;
 					if (sPos + 1 < s.length()) {
 						char nn = s.charAt(sPos + 1);

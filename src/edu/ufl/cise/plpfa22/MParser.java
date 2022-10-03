@@ -48,7 +48,7 @@ public class MParser implements IParser {
 	
 	void match(Kind kind) throws PLPException {
 		if (t.getKind() == kind) {
-			t = scanner.next();
+			if (kind != kind.DOT) t = scanner.next();
 		}
 		else {
 			throw new SyntaxException("Wrong Grammar");
@@ -94,22 +94,179 @@ public class MParser implements IParser {
 		return new ProcDec(first, ident, tblock);
 	}
 	
-	private Statement getStatement(IToken first) throws PLPException{
-		if (t.getKind() == Kind.IDENT) {
-			
+	private Expression getExpression(IToken first) throws PLPException {
+		Expression tmp1 = null;
+		tmp1 = getAddiExpression(first);
+		while ((t.getKind() == Kind.LT) || (t.getKind() == Kind.LE)|| (t.getKind() == Kind.EQ) ||
+				(t.getKind() == Kind.NEQ) || (t.getKind() == Kind.GT) || (t.getKind() == Kind.GE)) {
+			if(t.getKind() == Kind.LT) {
+				IToken op = t;
+				match(Kind.LT);
+				tmp1 = new ExpressionBinary(first, tmp1, op, getMultExpression(t));
+			} 
+			else if(t.getKind() == Kind.LE) {
+				IToken op = t;
+				match(Kind.LE);
+				tmp1 = new ExpressionBinary(first, tmp1, op, getMultExpression(t));
+			}
+			else if(t.getKind() == Kind.EQ) {
+				IToken op = t;
+				match(Kind.EQ);
+				tmp1 = new ExpressionBinary(first, tmp1, op, getMultExpression(t));
+			} 
+			else if(t.getKind() == Kind.NEQ) {
+				IToken op = t;
+				match(Kind.NEQ);
+				tmp1 = new ExpressionBinary(first, tmp1, op, getMultExpression(t));
+			} 
+			else if(t.getKind() == Kind.GT) {
+				IToken op = t;
+				match(Kind.GT);
+				tmp1 = new ExpressionBinary(first, tmp1, op, getMultExpression(t));
+			} 
+			else if(t.getKind() == Kind.GE) {
+				IToken op = t;
+				match(Kind.GE);
+				tmp1 = new ExpressionBinary(first, tmp1, op, getMultExpression(t));
+			} 
 		}
-		else if (t.getKind() == Kind.KW_CALL) {
-			
-		}
-		else if (t.getKind() == Kind.QUESTION) {
-			
-		}
-		return null;
+		if (tmp1 != null) return tmp1;
+		throw new SyntaxException("Wrong structure in Expression");
 	}
 	
-	private Expression getExpression(IToken first) throws PLPException {
-		
-		return null;
+	private Expression getAddiExpression(IToken first) throws PLPException {
+		Expression tmp1 = null;
+		tmp1 = getMultExpression(first);
+		while ((t.getKind() == Kind.PLUS) || (t.getKind() == Kind.MINUS)) {
+			if(t.getKind() == Kind.PLUS) {
+				IToken op = t;
+				match(Kind.PLUS);
+				tmp1 = new ExpressionBinary(first, tmp1, op, getMultExpression(t));
+			} 
+			else if(t.getKind() == Kind.MINUS) {
+				IToken op = t;
+				match(Kind.MINUS);
+				tmp1 = new ExpressionBinary(first, tmp1, op, getMultExpression(t));
+			} 
+		}
+		if (tmp1 != null) return tmp1;
+		throw new SyntaxException("Wrong structure in Expression");
+	}
+
+	private Expression getMultExpression(IToken first) throws PLPException {
+		Expression tmp1 = null;
+		tmp1 = getPrimExpression(first);
+		while ((t.getKind() == Kind.TIMES) || (t.getKind() == Kind.DIV) || (t.getKind() == Kind.MOD)) {
+			if(t.getKind() == Kind.TIMES) {
+				IToken op = t;
+				match(Kind.TIMES);
+				tmp1 = new ExpressionBinary(first, tmp1, op, getPrimExpression(t));
+			} 
+			else if(t.getKind() == Kind.DIV) {
+				IToken op = t;
+				match(Kind.DIV);
+				tmp1 = new ExpressionBinary(first, tmp1, op, getPrimExpression(t));
+			} 
+			else if(t.getKind() == Kind.MOD) {
+				IToken op = t;
+				match(Kind.MOD);
+				tmp1 = new ExpressionBinary(first, tmp1, op, getPrimExpression(t));
+			} 
+		}
+		if (tmp1 != null) return tmp1;
+		throw new SyntaxException("Wrong structure in Expression");
+	}
+
+	private Expression getPrimExpression(IToken first) throws PLPException {
+		if (first.getKind() == Kind.IDENT) {
+			ExpressionIdent tmpIdent = new ExpressionIdent(t);
+			match(Kind.IDENT);
+			return tmpIdent;
+		}
+		else if (first.getKind() == Kind.NUM_LIT) {
+			ExpressionNumLit tmpnumlit = new ExpressionNumLit(t);
+			match(Kind.NUM_LIT);
+			return tmpnumlit;
+		}
+		else if (first.getKind() == Kind.STRING_LIT) {
+			ExpressionStringLit tmpstringlit = new ExpressionStringLit(t);
+			match(Kind.STRING_LIT);
+			return tmpstringlit;
+		} 
+		else if (first.getKind() == Kind.BOOLEAN_LIT) {
+			ExpressionBooleanLit tmpbooleanlit = new ExpressionBooleanLit(t);
+			match(Kind.BOOLEAN_LIT);
+			return tmpbooleanlit;
+		}
+		else if (first.getKind() == Kind.LPAREN) {
+			match(Kind.LPAREN);
+			Expression tmp1 = getExpression(t);
+			match(Kind.RPAREN);
+			return tmp1;
+		}
+		throw new SyntaxException("Wrong Value Type in Expression");
+	}
+
+	private Statement getStatement(IToken first) throws PLPException{
+		IToken tmp;
+		if (t.getKind() == Kind.IDENT) {
+			tmp = t;
+			match(Kind.IDENT);
+			match(Kind.ASSIGN);
+			return new StatementAssign(first, new Ident(tmp), getExpression(t));
+		}
+		else if (t.getKind() == Kind.KW_CALL) {
+			match(Kind.KW_CALL);
+			if (t.getKind() != Kind.IDENT) {
+				throw new SyntaxException("Wrong Ident name in Statement");
+			} 
+			tmp = t;
+			match(Kind.IDENT);
+			return new StatementCall(first, new Ident(tmp));
+		}
+		else if (t.getKind() == Kind.QUESTION) {
+			match(Kind.QUESTION);
+			if (t.getKind() != Kind.IDENT) {
+				throw new SyntaxException("Wrong Ident name in Statement");
+			} 
+			tmp = t;
+			match(Kind.IDENT);
+			return new StatementInput(first, new Ident(tmp));
+		}
+		else if (t.getKind() == Kind.BANG) {
+			match(Kind.BANG);
+			return new StatementOutput(first, getExpression(t));
+		}
+		else if (t.getKind() == Kind.KW_BEGIN) {
+			//System.out.println("here");
+			match(Kind.KW_BEGIN);
+			Statement statetmp;
+			List<Statement> slist = new ArrayList<Statement>();
+			statetmp = getStatement(t);
+			slist.add(statetmp);
+			while (t.getKind() == Kind.SEMI) {
+				match(Kind.SEMI);
+				statetmp = getStatement(t);
+				slist.add(statetmp);
+			}
+			match(Kind.KW_END);
+			return new StatementBlock(first, slist);
+		}
+		else if (t.getKind() == Kind.KW_IF) {
+			match(Kind.KW_IF);
+			Expression etmp = getExpression(t);
+			match(Kind.KW_THEN);
+			Statement statetmp = getStatement(t);
+			return new StatementIf(first, etmp, statetmp);
+		}
+		else if (t.getKind() == Kind.KW_WHILE) {
+			match(Kind.KW_WHILE);
+			Expression etmp = getExpression(t);
+			match(Kind.KW_DO);
+			Statement statetmp = getStatement(t);
+			return new StatementWhile(first, etmp, statetmp);
+		}
+		return new StatementEmpty(first);
 	}
 	
 	private Block getBlock() throws PLPException {

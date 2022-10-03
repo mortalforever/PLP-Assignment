@@ -10,7 +10,7 @@ public class CompilerComponentFactory {
 	public static ILexer getLexer(String input) {
 		return new MLexer(input);
 	}
-	public static IParser getParset(ILexer lexer) throws LexicalException {
+	public static IParser getParset(ILexer lexer) throws PLPException {
 		return new MParser(lexer);
 	}
 }

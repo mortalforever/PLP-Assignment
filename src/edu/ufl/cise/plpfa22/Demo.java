@@ -12,7 +12,31 @@ import edu.ufl.cise.plpfa22.ast.Types;
 import edu.ufl.cise.plpfa22.LexicalException;
 import edu.ufl.cise.plpfa22.LexerTest;
 import java.util.List;
-import java.util.Vector;
+import java.util.ArrayList;
+
+import edu.ufl.cise.plpfa22.IToken.Kind;
+import edu.ufl.cise.plpfa22.ast.ASTNode;
+import edu.ufl.cise.plpfa22.ast.Block;
+import edu.ufl.cise.plpfa22.ast.ConstDec;
+import edu.ufl.cise.plpfa22.ast.Expression;
+import edu.ufl.cise.plpfa22.ast.ExpressionBinary;
+import edu.ufl.cise.plpfa22.ast.ExpressionBooleanLit;
+import edu.ufl.cise.plpfa22.ast.ExpressionIdent;
+import edu.ufl.cise.plpfa22.ast.ExpressionNumLit;
+import edu.ufl.cise.plpfa22.ast.ExpressionStringLit;
+import edu.ufl.cise.plpfa22.ast.Ident;
+import edu.ufl.cise.plpfa22.ast.ProcDec;
+import edu.ufl.cise.plpfa22.ast.Program;
+import edu.ufl.cise.plpfa22.ast.Statement;
+import edu.ufl.cise.plpfa22.ast.StatementAssign;
+import edu.ufl.cise.plpfa22.ast.StatementBlock;
+import edu.ufl.cise.plpfa22.ast.StatementCall;
+import edu.ufl.cise.plpfa22.ast.StatementEmpty;
+import edu.ufl.cise.plpfa22.ast.StatementIf;
+import edu.ufl.cise.plpfa22.ast.StatementInput;
+import edu.ufl.cise.plpfa22.ast.StatementOutput;
+import edu.ufl.cise.plpfa22.ast.StatementWhile;
+import edu.ufl.cise.plpfa22.ast.VarDec;
 
 public class Demo {
 
@@ -64,11 +88,18 @@ public class Demo {
 		System.out.println(a.size());
 		**/
 		String input = """
-				CONST a=1,b=2;
-				CONST c = 3 ;
-				VAR d, e;
-				PROCEDURE a; CONST f =1;;
-				.""";
+				CONST a=3;
+				VAR x,y,z;
+				PROCEDURE p;
+				  VAR j;
+				  BEGIN
+				     ? x;
+				     IF x = 0 THEN ! y ;
+				     WHILE j < 24 DO CALL z
+				  END;
+				! z
+				.
+				""";
 		/**
 		
 		ILexer lexer = new MLexer(input);
@@ -83,6 +114,20 @@ public class Demo {
 		**/
 		MParser parser = new MParser(new MLexer(input));
 		ASTNode ast = parser.parse();
+		Block v0 = ((Program) ast).block;
+		List<ConstDec> v1 = ((Block) v0).constDecs;
+		System.out.println(v1.size());
+		IToken v2 = ((ConstDec) v1.get(0)).ident;
+		System.out.println(String.valueOf(v2.getText()));
+		Integer v3 = (Integer) ((ConstDec) v1.get(0)).val;
+		System.out.println(v3);
+		List<VarDec> v4 = ((Block) v0).varDecs;
+		System.out.println(v4.size());
+		IToken v5 = ((VarDec) v4.get(0)).ident;
+		System.out.println(v5.getText());
+		List<ProcDec> v8 = ((Block) v0).procedureDecs;
+		IToken v9 = ((ProcDec) v8.get(0)).ident;
+		System.out.println(v9.getText());
 		System.out.println(ast.toString());
 		//System.out.println(ast.getFirstToken().getKind());
 	}

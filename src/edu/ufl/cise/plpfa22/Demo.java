@@ -18,6 +18,7 @@ import edu.ufl.cise.plpfa22.IToken.Kind;
 import edu.ufl.cise.plpfa22.ast.ASTNode;
 import edu.ufl.cise.plpfa22.ast.Block;
 import edu.ufl.cise.plpfa22.ast.ConstDec;
+import edu.ufl.cise.plpfa22.ast.Declaration;
 import edu.ufl.cise.plpfa22.ast.Expression;
 import edu.ufl.cise.plpfa22.ast.ExpressionBinary;
 import edu.ufl.cise.plpfa22.ast.ExpressionBooleanLit;
@@ -37,6 +38,8 @@ import edu.ufl.cise.plpfa22.ast.StatementInput;
 import edu.ufl.cise.plpfa22.ast.StatementOutput;
 import edu.ufl.cise.plpfa22.ast.StatementWhile;
 import edu.ufl.cise.plpfa22.ast.VarDec;
+
+import java.util.HashMap;
 
 public class Demo {
 
@@ -86,9 +89,9 @@ public class Demo {
 		System.out.println(a.size());
 		a.add("111");
 		System.out.println(a.size());
-		**/
-		String input = """
-				CONST a=3;
+		
+			String input = """
+				CONST a=312;
 				VAR x,y,z;
 				PROCEDURE p;
 				  VAR j;
@@ -98,6 +101,12 @@ public class Demo {
 				     WHILE j < 24 DO CALL z
 				  END;
 				! z
+				.
+				""";
+		**/
+		String input = """
+				CONST a=312;
+				! a
 				.
 				""";
 		/**
@@ -115,20 +124,25 @@ public class Demo {
 		MParser parser = new MParser(new MLexer(input));
 		ASTNode ast = parser.parse();
 		Block v0 = ((Program) ast).block;
-		List<ConstDec> v1 = ((Block) v0).constDecs;
-		System.out.println(v1.size());
-		IToken v2 = ((ConstDec) v1.get(0)).ident;
-		System.out.println(String.valueOf(v2.getText()));
+		Statement v7 = ((Block) v0).statement;
+		Expression v8 = ((StatementOutput) v7).expression;
+		IToken v9 = ((ExpressionIdent) v8).firstToken;
+		System.out.println(v9.getText());
+		ProcDec n = new ProcDec(null, null, null);
+		
+		/**
+		List<Declaration> v1 = ((Block) v0).constDecs;
 		Integer v3 = (Integer) ((ConstDec) v1.get(0)).val;
 		System.out.println(v3);
-		List<VarDec> v4 = ((Block) v0).varDecs;
-		System.out.println(v4.size());
-		IToken v5 = ((VarDec) v4.get(0)).ident;
-		System.out.println(v5.getText());
-		List<ProcDec> v8 = ((Block) v0).procedureDecs;
-		IToken v9 = ((ProcDec) v8.get(0)).ident;
-		System.out.println(v9.getText());
-		System.out.println(ast.toString());
-		//System.out.println(ast.getFirstToken().getKind());
+		HashMap<String, List<ASTNode> > nopp = new HashMap<String, List<ASTNode> >();
+		nopp.put("xx", v1);
+		System.out.println(nopp.get("xx"));
+		**/
+		List<ConstDec> v1 = ((Block) v0).constDecs;
+		ScopeNode a = new ScopeNode(v1.get(0), null, 1);
+		Declaration c = (Declaration) a.n;
+		System.out.println(c.toString());
 	}
+
+
 }

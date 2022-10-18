@@ -8,6 +8,7 @@ import edu.ufl.cise.plpfa22.MParser;
 import edu.ufl.cise.plpfa22.IToken;
 import edu.ufl.cise.plpfa22.IToken.Kind;
 import edu.ufl.cise.plpfa22.ast.ASTNode;
+import edu.ufl.cise.plpfa22.ast.ASTVisitor;
 import edu.ufl.cise.plpfa22.ast.Types;
 import edu.ufl.cise.plpfa22.LexicalException;
 import edu.ufl.cise.plpfa22.LexerTest;
@@ -105,8 +106,7 @@ public class Demo {
 				""";
 		**/
 		String input = """
-				CONST a=312;
-				! a
+				! abc
 				.
 				""";
 		/**
@@ -123,12 +123,9 @@ public class Demo {
 		**/
 		MParser parser = new MParser(new MLexer(input));
 		ASTNode ast = parser.parse();
-		Block v0 = ((Program) ast).block;
-		Statement v7 = ((Block) v0).statement;
-		Expression v8 = ((StatementOutput) v7).expression;
-		IToken v9 = ((ExpressionIdent) v8).firstToken;
-		System.out.println(v9.getText());
-		ProcDec n = new ProcDec(null, null, null);
+		ASTVisitor scope = new MASTVisitor();
+		ast.visit(scope, null);
+		System.out.println(ast.toString());
 		
 		/**
 		List<Declaration> v1 = ((Block) v0).constDecs;
@@ -138,10 +135,6 @@ public class Demo {
 		nopp.put("xx", v1);
 		System.out.println(nopp.get("xx"));
 		**/
-		List<ConstDec> v1 = ((Block) v0).constDecs;
-		ScopeNode a = new ScopeNode(v1.get(0), null, 1);
-		Declaration c = (Declaration) a.n;
-		System.out.println(c.toString());
 	}
 
 

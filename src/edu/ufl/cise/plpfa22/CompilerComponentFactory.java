@@ -4,6 +4,7 @@
 
 package edu.ufl.cise.plpfa22;
 
+import edu.ufl.cise.plpfa22.ast.ASTVisitor;
 
 public class CompilerComponentFactory {
 
@@ -12,5 +13,8 @@ public class CompilerComponentFactory {
 	}
 	public static IParser getParset(ILexer lexer) throws PLPException {
 		return new MParser(lexer);
+	}
+	public static ASTVisitor getScopeVisitor() {
+		return new MASTVisitor();
 	}
 }

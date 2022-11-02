@@ -185,6 +185,9 @@ public class TypeASTVisitor implements ASTVisitor{
 		if (statementAssign.expression.getType() == null) {
 			fullytyped = false;
 		}
+		else if (statementAssign.ident.getDec().getType() == null) {
+			statementAssign.ident.getDec().setType(statementAssign.expression.getType());
+		}
 		if (statementAssign.ident.getDec().getType() != statementAssign.expression.getType()) {
 			throw new TypeCheckException("Wrong assign type");
 		}

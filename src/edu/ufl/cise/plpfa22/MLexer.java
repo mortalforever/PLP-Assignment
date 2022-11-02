@@ -62,7 +62,7 @@ public class MLexer implements ILexer {
 					sPos++; columnNum++; n = s.charAt(sPos);
 					break;
 				}
-				else if (n == '\n' || n == 'r') {
+				else if (n == '\n' || n == '\r') {
 					if (n == '\r' & sPos + 1 < s.length() & s.charAt(sPos+1) == '\n') {
 						sPos++;
 					}

@@ -151,14 +151,30 @@ public class Demo {
 		//Type Check
 		
 		String input = """
-				VAR x,y,z;
+				VAR a,b;
+				PROCEDURE p;
+				  CONST a = 2, b=3;
+				  PROCEDURE q;
+				     CONST b=5;
+				     VAR a;
+				     PROCEDURE r;
+				        VAR b;
+				        BEGIN
+				        b := 3;
+				        a := 2;
+				        ! "a=";
+				        ! a;
+				        ! "b=";
+				        ! b;
+				        END;
+				    CALL r;
+				  CALL q;
 				BEGIN
-				x := 3;
-				y := "hello";
-				z := FALSE;
-				y := x;  
-				END
-				.
+				   CALL p;
+				   a := 0;
+				   b := TRUE
+				   END
+				   .
 				""";
 		IParser parser = new MParser(new MLexer(input));
 		ASTNode ast = parser.parse();

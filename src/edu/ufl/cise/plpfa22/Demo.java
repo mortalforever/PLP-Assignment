@@ -27,6 +27,7 @@ import edu.ufl.cise.plpfa22.ast.ExpressionIdent;
 import edu.ufl.cise.plpfa22.ast.ExpressionNumLit;
 import edu.ufl.cise.plpfa22.ast.ExpressionStringLit;
 import edu.ufl.cise.plpfa22.ast.Ident;
+import edu.ufl.cise.plpfa22.ast.PrettyPrintVisitor;
 import edu.ufl.cise.plpfa22.ast.ProcDec;
 import edu.ufl.cise.plpfa22.ast.Program;
 import edu.ufl.cise.plpfa22.ast.Statement;
@@ -46,6 +47,17 @@ public class Demo {
 
 	public static void main(String[] args) throws PLPException {
 		//String init = ""\"\\b \\t \\n \\f \\r \"";
+		/**
+		String input = "WHILEEET 123";
+		ILexer lexer = new MLexer(input);
+		IToken token = lexer.next();	
+		System.out.println(token.getKind());
+		System.out.println(token.getStringValue());
+		System.out.println(token.getSourceLocation());
+		token = lexer.next();
+		System.out.println(token.getKind());
+		System.out.println(token.getStringValue());
+		**/
 		
 		/**
 		String init = "0123 23411232 123224"; 
@@ -105,10 +117,10 @@ public class Demo {
 				.
 				""";
 		**/
-		String input = """
-				! abc
-				.
-				""";
+		//String input = """
+		//		! abc
+		//		.
+		//		""";
 		/**
 		
 		ILexer lexer = new MLexer(input);
@@ -121,11 +133,11 @@ public class Demo {
 		System.out.println(token.getStringValue());
 		System.out.println(token.getSourceLocation());
 		**/
-		MParser parser = new MParser(new MLexer(input));
-		ASTNode ast = parser.parse();
-		ASTVisitor scope = new MASTVisitor();
-		ast.visit(scope, null);
-		System.out.println(ast.toString());
+		//MParser parser = new MParser(new MLexer(input));
+		//ASTNode ast = parser.parse();
+		//ASTVisitor scope = new MASTVisitor();
+		//ast.visit(scope, null);
+		//System.out.println(ast.toString());
 		
 		/**
 		List<Declaration> v1 = ((Block) v0).constDecs;
@@ -135,6 +147,27 @@ public class Demo {
 		nopp.put("xx", v1);
 		System.out.println(nopp.get("xx"));
 		**/
+		
+		//Type Check
+		
+		String input = """
+				VAR x,y,z;
+				BEGIN
+				x := 3;
+				y := "hello";
+				z := FALSE;
+				y := x;  
+				END
+				.
+				""";
+		IParser parser = new MParser(new MLexer(input));
+		ASTNode ast = parser.parse();
+	    ASTVisitor scope = new MASTVisitor();
+		ast.visit(scope, null);
+		//System.out.println(PrettyPrintVisitor.AST2String(ast));
+		ASTVisitor types = CompilerComponentFactory.getTypeInferenceVisitor();
+	    ast.visit(types, null);
+	    System.out.println(PrettyPrintVisitor.AST2String(ast));
 	}
 
 

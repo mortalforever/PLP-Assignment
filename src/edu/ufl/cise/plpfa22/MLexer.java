@@ -137,7 +137,7 @@ public class MLexer implements ILexer {
 				}
 				break;
 				
-			case 3:
+			case 3:     //comment
 				//System.out.println("here");
 				while (!endComment) {
 					if (sPos+cnt >= s.length()) { isDone = true; }
@@ -156,7 +156,7 @@ public class MLexer implements ILexer {
 				//isDone = true;
 				break;
 				
-			case 4:
+			case 4:      
 				while (!isEnd) {
 					cnt++;
 					//System.out.println(cnt);
@@ -191,23 +191,23 @@ public class MLexer implements ILexer {
 				}
 				break;
 			
-			case 5:
+			case 5:    //Ident
 				//System.out.println("here");
 				while (!endIdent) {
 					if (isIdentChar(s.charAt(sPos+cnt))) { cnt++; }
 					else {
+						String tmp = s.substring(sPos, sPos+cnt);
+						if (isReserved(tmp)) {
+							tokenNow = getReservedToken(tmp, lineNum, columnNum);
+							sPos = sPos + cnt;
+							columnNum = columnNum + cnt;
+							cnt = 0;
+							state = 0;
+							endIdent = true;
+							isDone = true;
+							break;
+						}
 						tokenNow = new MToken(0, s.substring(startPos, startPos+cnt), lineNum, columnNum);
-						sPos = sPos + cnt;
-						columnNum = columnNum + cnt;
-						cnt = 0;
-						state = 0;
-						endIdent = true;
-						isDone = true;
-						break;
-					}
-					String tmp = s.substring(sPos, sPos+cnt);
-					if (isReserved(tmp)) {
-						tokenNow = getReservedToken(tmp, lineNum, columnNum);
 						sPos = sPos + cnt;
 						columnNum = columnNum + cnt;
 						cnt = 0;

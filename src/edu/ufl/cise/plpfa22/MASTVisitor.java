@@ -197,6 +197,7 @@ public class MASTVisitor implements ASTVisitor{
 			throw new ScopeException("not defined ident");
 		}
 		else {
+			expressionIdent.setNest(tNest);
 			expressionIdent.setDec(scopenode.get(s).get(scopenode.get(s).size()-1));
 		}
 		return null;
@@ -260,6 +261,7 @@ public class MASTVisitor implements ASTVisitor{
 			throw new ScopeException("not defined ident");
 		}
 		else {
+			ident.setNest(tNest);
 			ident.setDec(scopenode.get(s).get(scopenode.get(s).size()-1));
 		}
 		return null;

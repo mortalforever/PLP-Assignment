@@ -3,7 +3,7 @@
  */
 package edu.ufl.cise.plpfa22;
 
-
+import edu.ufl.cise.plpfa22.IToken.SourceLocation;
 
 @SuppressWarnings("serial")
 public class PLPException extends Exception {

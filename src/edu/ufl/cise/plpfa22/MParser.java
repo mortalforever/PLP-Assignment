@@ -25,6 +25,7 @@ import edu.ufl.cise.plpfa22.ast.StatementIf;
 import edu.ufl.cise.plpfa22.ast.StatementInput;
 import edu.ufl.cise.plpfa22.ast.StatementOutput;
 import edu.ufl.cise.plpfa22.ast.StatementWhile;
+import edu.ufl.cise.plpfa22.ast.Types.Type;
 import edu.ufl.cise.plpfa22.ast.VarDec;
 
 public class MParser implements IParser {
@@ -61,13 +62,19 @@ public class MParser implements IParser {
 		match(Kind.EQ);
 
 		if (t.getKind() == Kind.NUM_LIT) {
-			return new ConstDec(ident, ident, t.getIntValue());
+			ConstDec c = new ConstDec(ident, ident, t.getIntValue());
+			c.setType(Type.NUMBER);
+			return c;
 		}
 		if (t.getKind() == Kind.STRING_LIT) {
-			return new ConstDec(ident, ident, t.getStringValue());
+			ConstDec c = new ConstDec(ident, ident, t.getStringValue());
+			c.setType(Type.STRING);
+			return c;
 		}
 		if (t.getKind() == Kind.BOOLEAN_LIT) {
-			return new ConstDec(ident, ident, t.getBooleanValue());
+			ConstDec c = new ConstDec(ident, ident, t.getIntValue());
+			c.setType(Type.BOOLEAN);
+			return c;
 		}
 		throw new SyntaxException("Wrong Value Type in ConstDec");
 	}

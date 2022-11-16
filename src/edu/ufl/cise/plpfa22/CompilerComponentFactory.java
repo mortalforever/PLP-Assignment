@@ -20,4 +20,7 @@ public class CompilerComponentFactory {
 	public static ASTVisitor getTypeInferenceVisitor() {
 		return new TypeASTVisitor();
 	}
+	public static ASTVisitor getCodeGenVisitor(String packageName, String className, String sourceFileName) {
+		return new CodeGenVisitor(className, packageName, sourceFileName);
+	}
 }

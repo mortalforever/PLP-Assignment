@@ -5,6 +5,7 @@ import edu.ufl.cise.plpfa22.ILexer;
 import edu.ufl.cise.plpfa22.MLexer;
 import edu.ufl.cise.plpfa22.IParser;
 import edu.ufl.cise.plpfa22.MParser;
+import edu.ufl.cise.plpfa22.CodeGenUtils.DynamicClassLoader;
 import edu.ufl.cise.plpfa22.IToken;
 import edu.ufl.cise.plpfa22.IToken.Kind;
 import edu.ufl.cise.plpfa22.ast.ASTNode;
@@ -13,6 +14,7 @@ import edu.ufl.cise.plpfa22.ast.Types;
 import edu.ufl.cise.plpfa22.LexicalException;
 import edu.ufl.cise.plpfa22.LexerTest;
 import java.util.List;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 
 import edu.ufl.cise.plpfa22.IToken.Kind;
@@ -149,7 +151,7 @@ public class Demo {
 		**/
 		
 		//Type Check
-		
+		/**
 		String input = """
 				VAR a,b;
 				PROCEDURE p;
@@ -184,7 +186,27 @@ public class Demo {
 		ASTVisitor types = CompilerComponentFactory.getTypeInferenceVisitor();
 	    ast.visit(types, null);
 	    System.out.println(PrettyPrintVisitor.AST2String(ast));
+		**/
+		
+		//codegenvisitor
+		String input = """
+				! 1 = 3
+				.
+				""";
+		String shortClassName = "prog";
+		String JVMpackageName = "edu/ufl/cise/plpfa22";
+		
+		ILexer lexer = new MLexer(input);
+		IParser parser = new MParser(lexer);
+		ASTNode ast = parser.parse();
+		ast.visit(CompilerComponentFactory.getScopeVisitor(), null);
+		ast.visit(CompilerComponentFactory.getTypeInferenceVisitor(), null);
+		byte[] bytecode = (byte[]) ast.visit(CompilerComponentFactory.getCodeGenVisitor(shortClassName, JVMpackageName, ""), null);
+		System.out.println(CodeGenUtils.bytecodeToString(bytecode));
+		//Object[] argss = new Object[1];  
+		//String className = "edu.ufl.cise.plpfa22.prog";
+		//loadClassAndRunMethod(bytecode, className, "main", argss);
 	}
-
+	
 
 }

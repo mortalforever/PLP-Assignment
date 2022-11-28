@@ -72,7 +72,7 @@ public class MParser implements IParser {
 			return c;
 		}
 		if (t.getKind() == Kind.BOOLEAN_LIT) {
-			ConstDec c = new ConstDec(ident, ident, t.getIntValue());
+			ConstDec c = new ConstDec(ident, ident, t.getBooleanValue());
 			c.setType(Type.BOOLEAN);
 			return c;
 		}

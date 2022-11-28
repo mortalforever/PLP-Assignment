@@ -66,7 +66,50 @@ public class MToken implements IToken{
 
 	@Override
 	public String getStringValue() {
-		return s;
+		//return s.substring(1, s.length()-1);
+		if (num_kind == 2) {
+			String a = s.substring(1, s.length()-1);
+			String b = "";
+			for (int i = 0; i < a.length(); i++) {
+				//System.out.println(i);
+				//System.out.println(a.length());
+				if (a.charAt(i) != '\\') {
+						b = b.concat(a.substring(i,i+1));
+				}
+				else {
+					i++;
+					switch (a.charAt(i)) {
+						case 'b':
+							b = b + '\b';
+							break;
+						case 't':
+							b = b + '\t';
+							break;
+						case 'n':
+							b = b + '\n';
+							break;
+						case 'f':
+							b = b + '\f';
+							break;
+						case 'r':
+							b = b + '\r';
+							break;
+						case '\\':
+							b = b + '\\';
+							break;
+						case '\"':
+							b = b + '\"';
+							break;
+						case '\'':
+							b = b + '\'';
+							break;
+
+					}
+				}
+			}
+			return b;
+		}
+		else return s;
 	}
     
 }

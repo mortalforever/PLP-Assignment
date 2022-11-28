@@ -187,25 +187,12 @@ public class Demo {
 	    ast.visit(types, null);
 	    System.out.println(PrettyPrintVisitor.AST2String(ast));
 		**/
-		
-		//codegenvisitor
 		String input = """
-				! 1 = 3
+				CONST a = 3, b = TRUE, c = "hello";
 				.
 				""";
-		String shortClassName = "prog";
-		String JVMpackageName = "edu/ufl/cise/plpfa22";
-		
-		ILexer lexer = new MLexer(input);
-		IParser parser = new MParser(lexer);
+		IParser parser = new MParser(new MLexer(input));
 		ASTNode ast = parser.parse();
-		ast.visit(CompilerComponentFactory.getScopeVisitor(), null);
-		ast.visit(CompilerComponentFactory.getTypeInferenceVisitor(), null);
-		byte[] bytecode = (byte[]) ast.visit(CompilerComponentFactory.getCodeGenVisitor(shortClassName, JVMpackageName, ""), null);
-		System.out.println(CodeGenUtils.bytecodeToString(bytecode));
-		//Object[] argss = new Object[1];  
-		//String className = "edu.ufl.cise.plpfa22.prog";
-		//loadClassAndRunMethod(bytecode, className, "main", argss);
 	}
 	
 

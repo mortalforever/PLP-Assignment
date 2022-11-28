@@ -59,12 +59,20 @@ public class MLexer implements ILexer {
 					break;
 				}
 				else if (n == ' ' || n == '\t') {
-					sPos++; columnNum++; n = s.charAt(sPos);
+					sPos++; columnNum++; 
+					if (sPos >= s.length()) break;
+					n = s.charAt(sPos);
 					break;
 				}
 				else if (n == '\n' || n == '\r') {
+					if (sPos+1 >= s.length()) {
+						isDone = true; break;
+					}
 					if (n == '\r' & sPos + 1 < s.length() & s.charAt(sPos+1) == '\n') {
 						sPos++;
+						if (sPos+1 >= s.length()) {
+							isDone = true; break;
+						}
 					}
 					sPos++; columnNum = 1; lineNum++; n = s.charAt(sPos);
 					break;
@@ -114,15 +122,27 @@ public class MLexer implements ILexer {
 				isDone = true;
 				break;
 				
-			case 2:                                               // INT_LIT state
+			case 2:                                        // INT_LIT state
+				if (startPos + cnt >= s.length()) {
+					tokenNow = new MToken(1, s.substring(startPos, startPos+cnt), lineNum, columnNum);
+					sPos = startPos + cnt;
+					columnNum = columnNum + cnt;
+					state = 0; 
+					cnt = 0;
+					isDone = true;
+				}
 				n = s.charAt(startPos+cnt);
 				if (n == '0' || isNoneZeroDigit(n)) {
 					cnt++;
+					if (cnt > 10) {
+						throw new LexicalException("This is a big int");
+					}
 					if (startPos+cnt >= s.length()) {
 						tokenNow = new MToken(1, s.substring(startPos, startPos+cnt), lineNum, columnNum);
-						if (cnt > 10) {
-							throw new LexicalException("This is a big int");
-						}
+						sPos = startPos + cnt;
+						columnNum = columnNum + cnt;
+						state = 0; 
+						cnt = 0;
 						isDone = true;
 					}
 				}
@@ -142,7 +162,7 @@ public class MLexer implements ILexer {
 				while (!endComment) {
 					if (sPos+cnt >= s.length()) { isDone = true; }
 					char nxt = s.charAt(sPos+cnt);
-					if (nxt != '\n' & nxt != 'r') {
+					if (nxt != '\n' & nxt != '\r') {
 						cnt++;
 					}
 					else if (nxt == '\n'){
@@ -194,20 +214,15 @@ public class MLexer implements ILexer {
 			case 5:    //Ident
 				//System.out.println("here");
 				while (!endIdent) {
-					if (isIdentChar(s.charAt(sPos+cnt))) { cnt++; }
-					else {
-						String tmp = s.substring(sPos, sPos+cnt);
-						if (isReserved(tmp)) {
-							tokenNow = getReservedToken(tmp, lineNum, columnNum);
-							sPos = sPos + cnt;
-							columnNum = columnNum + cnt;
-							cnt = 0;
-							state = 0;
-							endIdent = true;
-							isDone = true;
-							break;
+					if (sPos+cnt < s.length()) {
+						while (isIdentChar(s.charAt(sPos+cnt))) {
+							cnt++;
+							if (sPos + cnt >= s.length()) break;
 						}
-						tokenNow = new MToken(0, s.substring(startPos, startPos+cnt), lineNum, columnNum);
+					}
+					String tmp = s.substring(sPos, sPos+cnt);
+					if (isReserved(tmp)) {
+						tokenNow = getReservedToken(tmp, lineNum, columnNum);
 						sPos = sPos + cnt;
 						columnNum = columnNum + cnt;
 						cnt = 0;
@@ -216,6 +231,14 @@ public class MLexer implements ILexer {
 						isDone = true;
 						break;
 					}
+					tokenNow = new MToken(0, s.substring(startPos, startPos+cnt), lineNum, columnNum);
+					sPos = sPos + cnt;
+					columnNum = columnNum + cnt;
+					cnt = 0;
+					state = 0;
+					endIdent = true;
+					isDone = true;
+					break;
 				}
 				break;
 			
@@ -258,7 +281,7 @@ public class MLexer implements ILexer {
 					n = s.charAt(startPos);
 					break;
 				}
-				else if (n == '\n' || n == 'r') {
+				else if (n == '\n' || n == '\r') {
 					if (n == '\r' & startPos + 1 < s.length() & s.charAt(startPos+1) == '\n') {
 						startPos++;
 					}
@@ -338,7 +361,7 @@ public class MLexer implements ILexer {
 				while (!endComment) {
 					if (startPos+cnt >= s.length()) { isDone = true; }
 					char nxt = s.charAt(startPos+cnt);
-					if (nxt != '\n' & nxt != 'r') {
+					if (nxt != '\n' & nxt != '\r') {
 						cnt++;
 					}
 					else if (nxt == '\n'){

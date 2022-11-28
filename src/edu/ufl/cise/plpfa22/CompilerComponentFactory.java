@@ -11,7 +11,7 @@ public class CompilerComponentFactory {
 	public static ILexer getLexer(String input) {
 		return new MLexer(input);
 	}
-	public static IParser getParset(ILexer lexer) throws PLPException {
+	public static IParser getParser(ILexer lexer) throws PLPException {
 		return new MParser(lexer);
 	}
 	public static ASTVisitor getScopeVisitor() {

@@ -118,7 +118,7 @@ public class CodeGenTests2 {
 		loadClassesAndRunMain(classes, className);
 	
 	}
-	/**
+
 	@DisplayName("stringOut")
 	@Test
 	public void stringout(TestInfo testInfo)throws Exception {
@@ -642,7 +642,7 @@ public class CodeGenTests2 {
 		String className = "edu.ufl.cise.plpfa22.prog";
 		loadClassesAndRunMain(classes, className);		
 	}	
-	**/
+
 
 }
 

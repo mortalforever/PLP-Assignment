@@ -247,7 +247,8 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 		MethodVisitor mv = (MethodVisitor)arg;
 		mv.visitTypeInsn(NEW, callClassName+"$"+callName);
 		mv.visitInsn(DUP);
-		mv.visitVarInsn(ALOAD, 0);
+		//mv.visitVarInsn(ALOAD, 0);
+		statementCall.ident.visit(this, arg);
 		mv.visitMethodInsn(INVOKESPECIAL, callClassName+"$"+callName, "<init>", "(L"+callClassName+";)V", false);
 		mv.visitMethodInsn(INVOKEVIRTUAL, callClassName+"$"+callName, "run", "()V", false);
 		return null;

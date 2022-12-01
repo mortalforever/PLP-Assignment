@@ -1,6 +1,10 @@
 package edu.ufl.cise.plpfa22;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.objectweb.asm.ClassWriter;
+import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
@@ -27,6 +31,7 @@ import edu.ufl.cise.plpfa22.ast.StatementOutput;
 import edu.ufl.cise.plpfa22.ast.StatementWhile;
 import edu.ufl.cise.plpfa22.ast.Types.Type;
 import edu.ufl.cise.plpfa22.ast.VarDec;
+import edu.ufl.cise.plpfa22.CodeGenUtils.GenClass;
 
 public class CodeGenVisitor implements ASTVisitor, Opcodes {
 
@@ -37,7 +42,16 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 	final String classDesc;
 	
 	ClassWriter classWriter;
-
+	List<ClassWriter> cwlist;
+	List<GenClass> genclass;
+	List<String> nowFullyClassName; 
+	List<String> nowClassName;
+	int nowNest;
+	
+	public static final String stringClass = "java/lang/String";
+	public static final String stringDesc = "Ljava/lang/String;";
+	public static final String listClass = "java/util/ArrayList";
+	public static final String listDesc = "Ljava/util/ArrayList;";
 	
 	public  CodeGenVisitor(String className, String packageName, String sourceFileName) {
 		super();
@@ -45,31 +59,88 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 		this.className = className;
 		this.sourceFileName = sourceFileName;
 		this.fullyQualifiedClassName = packageName + "/" + className;
+		//this.fullyQualifiedClassName = className + "/" + packageName;
 		this.classDesc="L"+this.fullyQualifiedClassName+';';
+		this.genclass = new ArrayList<GenClass>();
+		this.nowFullyClassName = new ArrayList<String>();
+		this.cwlist = new ArrayList<ClassWriter>();
+		this.nowClassName = new ArrayList<String>();
+		nowClassName.add(className);
+		nowNest = -1;
 	}
-
+	
+	@Override
+	public Object visitProgram(Program program, Object arg) throws PLPException {
+		//create a classWriter and visit it
+		nowFullyClassName.add(fullyQualifiedClassName);
+		
+		classWriter = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
+		classWriter.visit(V18, ACC_PUBLIC | ACC_SUPER, fullyQualifiedClassName, null, "java/lang/Object", new String[] {"java/lang/Runnable"});   
+		cwlist.add(classWriter);
+		
+		
+		if (sourceFileName != null) cwlist.get(0).visitSource(sourceFileName, null);
+		//classWriter.visitSource(sourceFileName, null);
+		// init method
+		MethodVisitor initVisitor = cwlist.get(0).visitMethod(ACC_PUBLIC, "<init>", "()V", null, null);
+		initVisitor.visitCode();
+		initVisitor.visitVarInsn(ALOAD, 0);
+		initVisitor.visitMethodInsn(INVOKESPECIAL, "java/lang/Object", "<init>", "()V", false);
+		initVisitor.visitInsn(RETURN);
+		initVisitor.visitMaxs(0, 0);
+		initVisitor.visitEnd();
+		
+		// main method
+		MethodVisitor mainVisitor = cwlist.get(0).visitMethod(ACC_PUBLIC | ACC_STATIC, "main", "([Ljava/lang/String;)V", null, null);
+		mainVisitor.visitCode();
+		mainVisitor.visitTypeInsn(NEW, fullyQualifiedClassName);
+		mainVisitor.visitInsn(DUP);
+		mainVisitor.visitMethodInsn(INVOKESPECIAL, fullyQualifiedClassName, "<init>", "()V", false);
+		mainVisitor.visitMethodInsn(INVOKEVIRTUAL, fullyQualifiedClassName, "run", "()V", false);
+		mainVisitor.visitInsn(RETURN);
+		mainVisitor.visitMaxs(0, 0);
+		mainVisitor.visitEnd();
+		
+		program.block.visit(this, cwlist.get(0));
+		
+		cwlist.get(0).visitEnd();
+        genclass.add(new GenClass(fullyQualifiedClassName,cwlist.get(0).toByteArray()));
+        cwlist.remove(0);
+        List<GenClass> answer = new ArrayList<GenClass>();
+        for (int i = genclass.size()-1; i >= 0; i--) {
+        	answer.add(genclass.get(i));
+        }
+		return answer;
+	}
+	
 	@Override
 	public Object visitBlock(Block block, Object arg) throws PLPException {
-		MethodVisitor methodVisitor = (MethodVisitor)arg;
+		nowNest++;
+		//MethodVisitor methodVisitor = (ClassWriter)arg.visitMethod(ACC_PUBLIC, "run", "()V", null, null);
+		ClassWriter cw = (ClassWriter)arg;
+		MethodVisitor methodVisitor = cw.visitMethod(ACC_PUBLIC, "run", "()V", null, null);
 		methodVisitor.visitCode();
 		for (ConstDec constDec : block.constDecs) {
 			constDec.visit(this, null);
 		}
 		for (VarDec varDec : block.varDecs) {
-			varDec.visit(this, methodVisitor);
+			varDec.visit(this, arg);
 		}
 		for (ProcDec procDec: block.procedureDecs) {
 			procDec.visit(this, null);
 		}
 		//add instructions from statement to method
-		block.statement.visit(this, arg);
+		
+		block.statement.visit(this, methodVisitor);
+		
 		methodVisitor.visitInsn(RETURN);
 		methodVisitor.visitMaxs(0,0);
 		methodVisitor.visitEnd();
+		nowNest--;
 		return null;
 
 	}
-
+	/**
 	@Override
 	public Object visitProgram(Program program, Object arg) throws PLPException {
 		//create a classWriter and visit it
@@ -88,26 +159,122 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
         classWriter.visitEnd();
         //return the bytes making up the classfile
 		return classWriter.toByteArray();
-	}
+	} 
+	**/
 
 	@Override
-	public Object visitStatementAssign(StatementAssign statementAssign, Object arg) throws PLPException {
-		throw new UnsupportedOperationException();
+	public Object visitConstDec(ConstDec constDec, Object arg) throws PLPException {
+		return null;
 	}
-
+	
 	@Override
 	public Object visitVarDec(VarDec varDec, Object arg) throws PLPException {
-		throw new UnsupportedOperationException();
+		ClassWriter cw = (ClassWriter)arg;
+		Type etype = varDec.getType();
+		if (etype != null ) {
+			String JVMType = (etype.equals(Type.NUMBER) ? "I" : (etype.equals(Type.BOOLEAN) ? "Z" : "Ljava/lang/String;"));
+			FieldVisitor fieldVisitor = cw.visitField(ACC_PUBLIC, varDec.ident.getStringValue(),JVMType, null, null);
+			fieldVisitor.visitEnd();
+		}
+		return null;
+	}
+	
+	@Override
+	public Object visitProcedure(ProcDec procDec, Object arg) throws PLPException {
+		String newClassName = nowFullyClassName.get(nowNest) + "$" + procDec.ident.getStringValue();
+		
+		nowFullyClassName.add(newClassName);
+		nowClassName.add(procDec.ident.getStringValue());
+		cwlist.get(nowNest).visitInnerClass(newClassName, nowFullyClassName.get(nowNest), nowClassName.get(nowNest+1),0);
+		
+		ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
+		cw.visit(V18, ACC_PUBLIC | ACC_SUPER, newClassName, null, "java/lang/Object", new String[] {"java/lang/Runnable"});
+		cwlist.add(cw);
+		if (sourceFileName != null) cwlist.get(nowNest+1).visitSource(sourceFileName, null);
+		
+		// innerclass and nesthost, nestmember
+		cwlist.get(0).visitNestMember(newClassName);
+		cwlist.get(nowNest+1).visitNestHost(fullyQualifiedClassName);
+		for (int i = 0; i < nowNest; i++) {
+			cwlist.get(nowNest+1).visitInnerClass(nowFullyClassName.get(i+1), nowFullyClassName.get(i), nowClassName.get(i+1), 0);
+		}
+		
+		//this$n
+		FieldVisitor fieldVisitor = cwlist.get(nowNest+1).visitField(ACC_FINAL | ACC_SYNTHETIC, "this$" + nowNest, "L"+nowFullyClassName.get(nowNest)+";", null, null);
+		fieldVisitor.visitEnd();
+		
+		// init method
+		MethodVisitor initVisitor = cwlist.get(nowNest+1).visitMethod(ACC_PUBLIC, "<init>", "(L"+nowFullyClassName.get(nowNest)+";)V", null, null);
+		initVisitor.visitCode();
+		initVisitor.visitVarInsn(ALOAD, 0);
+		initVisitor.visitVarInsn(ALOAD, 1);
+		initVisitor.visitFieldInsn(PUTFIELD, nowFullyClassName.get(nowNest+1), "this$"+nowNest, "L"+nowFullyClassName.get(nowNest)+";");
+		initVisitor.visitVarInsn(ALOAD, 0);
+		initVisitor.visitMethodInsn(INVOKESPECIAL, "java/lang/Object", "<init>", "()V", false);
+		initVisitor.visitInsn(RETURN);
+		initVisitor.visitMaxs(0, 0);
+		initVisitor.visitEnd();
+		
+		procDec.block.visit(this, cwlist.get(nowNest+1));
+		
+		cwlist.get(nowNest+1).visitEnd();
+		genclass.add(new GenClass(newClassName,cwlist.get(nowNest+1).toByteArray()));
+	    cwlist.remove(nowNest+1);
+	    nowClassName.remove(nowNest+1);
+	    nowFullyClassName.remove(nowNest+1);
+		return null;
+	}
+	
+	@Override
+	public Object visitStatementAssign(StatementAssign statementAssign, Object arg) throws PLPException {
+		MethodVisitor mv = (MethodVisitor)arg;
+		statementAssign.expression.visit(this, arg);
+		statementAssign.ident.visit(this, arg);
+		Type etype = statementAssign.ident.getDec().getType();
+		String JVMType = (etype.equals(Type.NUMBER) ? "I" : (etype.equals(Type.BOOLEAN) ? "Z" : "Ljava/lang/String;"));
+		int identNest = statementAssign.ident.getDec().getNest();
+		String identName = statementAssign.ident.getFirstToken().getStringValue();
+		mv.visitInsn(SWAP);
+		mv.visitFieldInsn(PUTFIELD, nowFullyClassName.get(identNest), identName, JVMType);
+		return null;
 	}
 
 	@Override
 	public Object visitStatementCall(StatementCall statementCall, Object arg) throws PLPException {
-		throw new UnsupportedOperationException();
+		int callNest = statementCall.ident.getDec().getNest();
+		String callClassName = nowFullyClassName.get(callNest);
+		String callName = statementCall.ident.getFirstToken().getStringValue();
+		MethodVisitor mv = (MethodVisitor)arg;
+		mv.visitTypeInsn(NEW, callClassName+"$"+callName);
+		mv.visitInsn(DUP);
+		mv.visitVarInsn(ALOAD, 0);
+		mv.visitMethodInsn(INVOKESPECIAL, callClassName+"$"+callName, "<init>", "(L"+callClassName+";)V", false);
+		mv.visitMethodInsn(INVOKEVIRTUAL, callClassName+"$"+callName, "run", "()V", false);
+		return null;
 	}
 
 	@Override
 	public Object visitStatementInput(StatementInput statementInput, Object arg) throws PLPException {
-		throw new UnsupportedOperationException();
+		MethodVisitor mv = (MethodVisitor)arg;
+		mv.visitTypeInsn(NEW, "java/util/Scanner");
+		mv.visitInsn(DUP);
+		mv.visitFieldInsn(GETSTATIC, "java/lang/System.in", ":", "Ljava/io/InputStream;");
+		mv.visitMethodInsn(INVOKEVIRTUAL, "java/util/Scanner", "<init>", "(Ljava/io/InputStream;)V", false);
+		mv.visitVarInsn(ASTORE, 1);
+		statementInput.ident.visit(this, arg);
+		mv.visitVarInsn(ALOAD, 1);
+		Type etype = statementInput.ident.getDec().getType();
+		String identName = statementInput.ident.getFirstToken().getStringValue();
+		String JVMType = (etype.equals(Type.NUMBER) ? "I" : (etype.equals(Type.BOOLEAN) ? "Z" : "Ljava/lang/String;"));
+		int identNest = statementInput.ident.getDec().getNest();
+		if (etype.equals(Type.NUMBER)) {
+			mv.visitMethodInsn(INVOKEVIRTUAL, "java/util/Scanner", "<init>", JVMType, false);
+		}
+		else {
+			mv.visitMethodInsn(INVOKEVIRTUAL, "java/util/Scanner", "<init>", JVMType, false);
+		}
+		mv.visitFieldInsn(PUTFIELD, nowFullyClassName.get(identNest), identName, JVMType);
+		return null;
 	}
 
 	@Override
@@ -134,13 +301,35 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 	public Object visitStatementIf(StatementIf statementIf, Object arg) throws PLPException {
 		MethodVisitor mv = (MethodVisitor)arg;
 		statementIf.expression.visit(this, arg);
+		Label l1 = new Label();
+		mv.visitLdcInsn(true);
+		mv.visitJumpInsn(IF_ICMPNE, l1);
+		Label l2 = new Label();
+		mv.visitJumpInsn(GOTO, l2);
+		mv.visitLabel(l1);
 		statementIf.statement.visit(this, arg);
+		mv.visitLabel(l2);
 		return null;
 	}
 
 	@Override
 	public Object visitStatementWhile(StatementWhile statementWhile, Object arg) throws PLPException {
-		throw new UnsupportedOperationException();
+		MethodVisitor mv = (MethodVisitor) arg;
+		Label l1 = new Label();
+		mv.visitJumpInsn(GOTO, l1);
+		Label l2 = new Label();
+		mv.visitLabel(l2);
+		statementWhile.statement.visit(this, arg);
+		mv.visitLabel(l1);
+		statementWhile.expression.visit(this, arg);
+		mv.visitLdcInsn(true);
+		mv.visitJumpInsn(IF_ICMPNE, l2);
+		return null;
+	}
+
+	@Override
+	public Object visitStatementEmpty(StatementEmpty statementEmpty, Object arg) throws PLPException {
+		return null;
 	}
 
 	@Override
@@ -300,7 +489,7 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 			expressionBinary.e0.visit(this, arg);
 			expressionBinary.e1.visit(this, arg);
 			switch (op) {
-				case PLUS -> mv.visitMethodInsn(INVOKESTATIC, this.className, "myConcat", "("+"Ljava/lang/String;"+"Ljava/lang/String;"+")"+"Ljava/lang/String;",false);
+				case PLUS -> mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/String", "concat", "(Ljava/lang/String;)Ljava/lang/String;",false);
 				case EQ -> {
 					Label labelStrEqFalseBr = new Label();
 					mv.visitJumpInsn(IF_ACMPNE, labelStrEqFalseBr);
@@ -313,7 +502,8 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 				}
 				case NEQ -> {
 					Label labelStrNeq = new Label();
-					mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/String", "startsWith", "(Ljava/lang/String;)Z", false);
+					//mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/String", "startsWith", "(Ljava/lang/String;)Z", false);
+					mv.visitJumpInsn(IF_ACMPNE,  labelStrNeq);
 					mv.visitInsn(ICONST_1);
 					Label labelPostStrNeq = new Label();
 					mv.visitJumpInsn(GOTO, labelPostStrNeq);
@@ -322,44 +512,18 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 					mv.visitLabel(labelPostStrNeq);
 				}
 				case LT -> {
-					Label labelStrLt = new Label();
+					mv.visitInsn(SWAP);
 					mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/String", "startsWith", "(Ljava/lang/String;)Z", false);
-					mv.visitInsn(ICONST_1);
-					Label labelPostStrLt = new Label();
-					mv.visitJumpInsn(GOTO, labelPostStrLt);
-					mv.visitLabel(labelStrLt);
-					mv.visitInsn(ICONST_0);
-					mv.visitLabel(labelPostStrLt);
 				}
 				case LE -> {
-					Label labelStrLe = new Label();
+					mv.visitInsn(SWAP);
 					mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/String", "startsWith", "(Ljava/lang/String;)Z", false);
-					mv.visitInsn(ICONST_1);
-					Label labelPostStrLe = new Label();
-					mv.visitJumpInsn(GOTO, labelPostStrLe);
-					mv.visitLabel(labelStrLe);
-					mv.visitInsn(ICONST_0);
-					mv.visitLabel(labelPostStrLe);
 				}
 				case GT -> {
-					Label labelStrGt = new Label();
 					mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/String", "startsWith", "(Ljava/lang/String;)Z", false);
-					mv.visitInsn(ICONST_1);
-					Label labelPostStrGt = new Label();
-					mv.visitJumpInsn(GOTO, labelPostStrGt);
-					mv.visitLabel(labelStrGt);
-					mv.visitInsn(ICONST_0);
-					mv.visitLabel(labelPostStrGt);
 				}	
 				case GE -> {
-					Label labelStrGe = new Label();
 					mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/String", "startsWith", "(Ljava/lang/String;)Z", false);
-					mv.visitInsn(ICONST_1);
-					Label labelPostStrGe = new Label();
-					mv.visitJumpInsn(GOTO, labelPostStrGe);
-					mv.visitLabel(labelStrGe);
-					mv.visitInsn(ICONST_0);
-					mv.visitLabel(labelPostStrGe);
 				}
 				default -> {
 					throw new IllegalStateException("code gen bug in visitExpressionBinary STRING");
@@ -376,7 +540,45 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 
 	@Override
 	public Object visitExpressionIdent(ExpressionIdent expressionIdent, Object arg) throws PLPException {
-		throw new UnsupportedOperationException();
+		MethodVisitor mv = (MethodVisitor)arg;
+		if (expressionIdent.getDec().getClass() == ConstDec.class) {
+			mv.visitLdcInsn(((ConstDec)expressionIdent.getDec()).val);
+		}
+		else {
+			int identNest = expressionIdent.getDec().getNest();
+			String identName = expressionIdent.getFirstToken().getStringValue();
+			Type etype = expressionIdent.getDec().getType();
+			String JVMType = (etype.equals(Type.NUMBER) ? "I" : (etype.equals(Type.BOOLEAN) ? "Z" : "Ljava/lang/String;"));
+			mv.visitVarInsn(ALOAD, 0);
+			if (identNest < nowNest) {
+				mv.visitFieldInsn(GETFIELD, nowFullyClassName.get(nowNest), "this$"+(nowNest-1), "L"+nowFullyClassName.get(nowNest-1)+";");
+				for (int i = nowNest - 1; i > identNest; i--) {
+					mv.visitFieldInsn(GETFIELD, nowFullyClassName.get(i), "this$"+(i-1), "L"+nowFullyClassName.get(i-1)+";");
+				}
+			}
+			mv.visitFieldInsn(GETFIELD, nowFullyClassName.get(identNest), identName, JVMType);
+		}
+		return null;
+	}
+
+	@Override
+	public Object visitIdent(Ident ident, Object arg) throws PLPException {
+		MethodVisitor mv = (MethodVisitor)arg;
+		int identNest = ident.getDec().getNest();
+		String identName = ident.getFirstToken().getStringValue();
+		Type etype = ident.getDec().getType();
+		String JVMType = (etype.equals(Type.NUMBER) ? "I" : (etype.equals(Type.BOOLEAN) ? "Z" : "Ljava/lang/String;"));
+		mv.visitVarInsn(ALOAD, 0);
+		if (identNest < nowNest) {
+			//System.out.println("this$"+(nowNest-1));
+			mv.visitFieldInsn(GETFIELD, nowFullyClassName.get(nowNest), "this$"+(nowNest-1), "L"+nowFullyClassName.get(nowNest-1)+";");
+			for (int i = nowNest - 1; i > identNest; i--) {
+				//System.out.println(i);
+				mv.visitFieldInsn(GETFIELD, nowFullyClassName.get(i), "this$"+(i-1), "L"+nowFullyClassName.get(i-1)+";");
+			}
+		}
+	
+		return null;
 	}
 
 	@Override
@@ -396,28 +598,9 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 	@Override
 	public Object visitExpressionBooleanLit(ExpressionBooleanLit expressionBooleanLit, Object arg) throws PLPException {
 		MethodVisitor mv = (MethodVisitor)arg;
-		mv.visitLdcInsn(expressionBooleanLit.getFirstToken().getStringValue());
+		mv.visitLdcInsn(expressionBooleanLit.getFirstToken().getBooleanValue());
 		return null;
 	}
 
-	@Override
-	public Object visitProcedure(ProcDec procDec, Object arg) throws PLPException {
-		throw new UnsupportedOperationException();
-	}
-
-	@Override
-	public Object visitConstDec(ConstDec constDec, Object arg) throws PLPException {
-		throw new UnsupportedOperationException();
-	}
-
-	@Override
-	public Object visitStatementEmpty(StatementEmpty statementEmpty, Object arg) throws PLPException {
-		return null;
-	}
-
-	@Override
-	public Object visitIdent(Ident ident, Object arg) throws PLPException {
-		throw new UnsupportedOperationException();
-	}
 
 }

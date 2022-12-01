@@ -187,12 +187,10 @@ public class Demo {
 	    ast.visit(types, null);
 	    System.out.println(PrettyPrintVisitor.AST2String(ast));
 		**/
-		String input = """
-				CONST a = 3, b = TRUE, c = "hello";
-				.
-				""";
-		IParser parser = new MParser(new MLexer(input));
-		ASTNode ast = parser.parse();
+		List<String> b = new ArrayList<String>();
+		b.add("asd");
+		b.add("bb");
+		System.out.println(b.get(1));
 	}
 	
 

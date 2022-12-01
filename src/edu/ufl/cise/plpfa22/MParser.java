@@ -294,6 +294,7 @@ public class MParser implements IParser {
 				t = scanner.next();
 			}
 			//System.out.println(t.getKind());
+			
 			match(Kind.SEMI);
 		}
 		

@@ -85,7 +85,6 @@ public class CodeGenTests {
 	}
 
 
-	
 	@DisplayName("numOut")
 	@Test
 	public void numout(TestInfo testInfo)throws Exception {
@@ -103,7 +102,7 @@ public class CodeGenTests {
 		loadClassAndRunMethod(bytecode, className, "main", args);
 	
 	}
-
+	
 	@DisplayName("stringOut")
 	@Test
 	public void stringout(TestInfo testInfo)throws Exception {
@@ -310,13 +309,14 @@ public class CodeGenTests {
 		String input = """
 				BEGIN
 				! "red" = "blue";
-				! "red"= "red";
+				! "red" = "red";
 				! "red" # "blue";
-				! "red" # "red"
+				! "red" # "red";
+				! "red" + "red"
 				END
 				.
 				""";
-		
+
 		String shortClassName = "prog";
 		String JVMpackageName = "edu/ufl/cise/plpfa22";
 		byte[] bytecode = compile(input, shortClassName, JVMpackageName);
@@ -327,7 +327,6 @@ public class CodeGenTests {
 		loadClassAndRunMethod(bytecode, className, "main", args);
 		
 	}
-	
 	
 	@DisplayName("stringRelOps")
 	@Test
@@ -363,8 +362,7 @@ public class CodeGenTests {
 		String className = "edu.ufl.cise.plpfa22.prog";
 		loadClassAndRunMethod(bytecode, className, "main", args);		
 	}
-	
-	}
+}
 
 
 

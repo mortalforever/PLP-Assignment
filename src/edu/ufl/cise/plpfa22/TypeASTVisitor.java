@@ -53,7 +53,12 @@ public class TypeASTVisitor implements ASTVisitor{
 			fullytyped = true; typechanges = false;
 			program.block.visit(this, arg);
 			if (fullytyped) return null;
-			if (!fullytyped & !typechanges) return null;
+			if (!fullytyped & !typechanges) {
+				//System.out.println(fullytyped);
+				//System.out.println(typechanges);
+				throw new TypeCheckException("not fully typed");
+				//return null;
+			}
 		}
 	}
 	
@@ -182,11 +187,22 @@ public class TypeASTVisitor implements ASTVisitor{
 	public Object visitStatementAssign(StatementAssign statementAssign, Object arg) throws PLPException {
 		statementAssign.ident.visit(this, arg);
 		statementAssign.expression.visit(this, arg);
-		if (statementAssign.expression.getType() == null) {
-			fullytyped = false;
+		if (statementAssign.ident.getDec().getClass() == ConstDec.class) {
+			throw new TypeCheckException("cannot assign to constant");
 		}
-		else if (statementAssign.ident.getDec().getType() == null) {
+		if (statementAssign.expression.getType() == null & statementAssign.ident.getDec().getType() == null) {
+			fullytyped = false;
+			//System.out.println("assign");
+		}
+		else if (statementAssign.ident.getDec().getType() == null & statementAssign.expression.getType() != null) {
 			statementAssign.ident.getDec().setType(statementAssign.expression.getType());
+			typechanges = true;
+			statementAssign.ident.visit(this, arg);
+		}
+		else if (statementAssign.ident.getDec().getType() != null & statementAssign.expression.getType() == null) {
+			statementAssign.expression.setType(statementAssign.ident.getDec().getType());
+			typechanges = true;
+			statementAssign.expression.visit(this, arg);
 		}
 		if (statementAssign.ident.getDec().getType() != statementAssign.expression.getType()) {
 			throw new TypeCheckException("Wrong assign type");
@@ -197,7 +213,11 @@ public class TypeASTVisitor implements ASTVisitor{
 	@Override
 	public Object visitStatementCall(StatementCall statementCall, Object arg) throws PLPException {
 		statementCall.ident.visit(this, arg);
-		if (statementCall.ident.getDec().getType() != Type.PROCEDURE) {
+		if (statementCall.ident.getDec().getType() == null) {
+			fullytyped = false;
+			//System.out.println("call");
+		}
+		else if (statementCall.ident.getDec().getType() != Type.PROCEDURE) {
 			throw new TypeCheckException("ident in statementcall is not procedure");
 		}
 		return null;
@@ -220,6 +240,7 @@ public class TypeASTVisitor implements ASTVisitor{
 		statementOutput.expression.visit(this, arg);
 		if (statementOutput.expression.getType() == null) {
 			fullytyped = false;
+			//System.out.println("output");
 		}
 		else {
 			if (statementOutput.expression.getType() == Type.PROCEDURE) {
@@ -244,6 +265,7 @@ public class TypeASTVisitor implements ASTVisitor{
 		statementIf.statement.visit(this, arg);
 		if (statementIf.expression.getType() == null) {
 			fullytyped = false;
+			//System.out.println("if");
 		}
 		else {
 			if (statementIf.expression.getType() != Type.BOOLEAN) {
@@ -259,6 +281,7 @@ public class TypeASTVisitor implements ASTVisitor{
 		statementWhile.statement.visit(this, arg);
 		if (statementWhile.expression.getType() == null) {
 			fullytyped = false;
+			//System.out.println("while");
 		}
 		else {
 			if (statementWhile.expression.getType() != Type.BOOLEAN) {
@@ -275,6 +298,7 @@ public class TypeASTVisitor implements ASTVisitor{
 		if (expressionBinary.e0.getType() == null & expressionBinary.e1.getType() == null) {
 			if (expressionBinary.getType() == null ) {
 				fullytyped = false;
+				//System.out.println("expressionbinary");
 			}
 			else {
 				Type t = expressionBinary.getType();
@@ -356,14 +380,22 @@ public class TypeASTVisitor implements ASTVisitor{
 		else {
 			Declaration d =scopenode.get(s).get(scopenode.get(s).size()-1);
 			if (expressionIdent.getType() == null) {
-				if (d.getType() != null) expressionIdent.setType(d.getType());
-				else fullytyped = false;
+				if (d.getType() != null) { 
+					expressionIdent.setType(d.getType());
+					typechanges = true;
+				}
+				else { fullytyped = false;
+					//System.out.println("expressionIdent");
+				}
 			}
 			else {
 				if (d.getType() != null) {
 					if (d.getType() != expressionIdent.getType()) throw new TypeCheckException("ExpressionIdent type error");
 				}
-				else d.setType(expressionIdent.getType());
+				else {
+					d.setType(expressionIdent.getType());
+					typechanges = true;
+				}
 			}
 			expressionIdent.setNest(tNest);
 			expressionIdent.setDec(d);
@@ -414,7 +446,10 @@ public class TypeASTVisitor implements ASTVisitor{
 			Declaration d =scopenode.get(s).get(scopenode.get(s).size()-1);
 			ident.setDec(d);
 			ident.setNest(tNest);
-			if (d.getType() == null) fullytyped = false;
+			if (d.getType() == null) { 
+				fullytyped = false;
+				//System.out.println("ident");
+			}
 		}
 		return null;
 	}

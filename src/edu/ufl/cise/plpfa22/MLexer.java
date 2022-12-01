@@ -90,6 +90,7 @@ public class MLexer implements ILexer {
 							cnt++;
 						}
 						if (n == '/' & nn == '/') {
+							//System.out.println("here");
 							state = 3; cnt++; endComment = false; break;
 						}
 					}
@@ -160,19 +161,22 @@ public class MLexer implements ILexer {
 			case 3:     //comment
 				//System.out.println("here");
 				while (!endComment) {
-					if (sPos+cnt >= s.length()) { isDone = true; }
+					if (sPos+cnt >= s.length()) { isDone = true; endComment = true; break; }
 					char nxt = s.charAt(sPos+cnt);
 					if (nxt != '\n' & nxt != '\r') {
 						cnt++;
 					}
-					else if (nxt == '\n'){
+					else if (nxt == '\n' || nxt == '\r'){
 						state = 0;
 						sPos = sPos + cnt + 1;
 						columnNum = 1;
 						lineNum++;
+						n = s.charAt(sPos);
 						endComment = true;
 					}
 				}
+				//System.out.println(state);
+				//System.out.println(n);
 				//isDone = true;
 				break;
 				

@@ -98,7 +98,7 @@ public class CodeGenTests2 {
 		}
 	}
 
-
+/**
 	@DisplayName("numOut")
 	@Test
 	public void numout(TestInfo testInfo)throws Exception {
@@ -621,19 +621,13 @@ public class CodeGenTests2 {
 		String className = "edu.ufl.cise.plpfa22.prog";
 		loadClassesAndRunMain(classes, className);		
 	}	
-	
+	**/
 	@DisplayName("while0")
 	@Test
 	public void while0(TestInfo testInfo) throws Exception{
 		String input = """
-				VAR a, minus1;
-				
-				BEGIN
-				a := 6;
-				minus1 := 0-1;
-				WHILE a > minus1 DO BEGIN !a; a := a-1 END
-				END
-				.  
+				! "COncat string bool err"+((FALSE+TRUE)+(FALSE*TRUE)+TRUE)
+				.
 				""";
 		String shortClassName = "prog";
 		String JVMpackageName = "edu/ufl/cise/plpfa22";

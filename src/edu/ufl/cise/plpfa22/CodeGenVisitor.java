@@ -303,13 +303,10 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 		MethodVisitor mv = (MethodVisitor)arg;
 		statementIf.expression.visit(this, arg);
 		Label l1 = new Label();
-		mv.visitLdcInsn(true);
-		mv.visitJumpInsn(IF_ICMPNE, l1);
-		Label l2 = new Label();
-		mv.visitJumpInsn(GOTO, l2);
-		mv.visitLabel(l1);
+		mv.visitLdcInsn(false);
+		mv.visitJumpInsn(IF_ICMPEQ, l1);
 		statementIf.statement.visit(this, arg);
-		mv.visitLabel(l2);
+		mv.visitLabel(l1);
 		return null;
 	}
 

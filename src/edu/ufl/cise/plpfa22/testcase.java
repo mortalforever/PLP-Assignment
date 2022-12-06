@@ -24,7 +24,9 @@ public class testcase implements Runnable{
 	class q implements Runnable {
 		@Override
 		public void run () {
-			System.out.println(1);
+			if (3 < 4) {
+				System.out.println(3);
+			}
 		}
 	}
 	public static void main(String[] args) {

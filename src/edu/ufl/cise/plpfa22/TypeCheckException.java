@@ -16,9 +16,9 @@ public class TypeCheckException extends PLPException {
 		super(error_message, line, column);
 	}
 
-	public TypeCheckException(String error_message, SourceLocation loc) {
-		super(error_message, loc);
-	}
+	//public TypeCheckException(String error_message, SourceLocation loc) {
+		//super(error_message, loc);
+	//}
 
 	public TypeCheckException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
 		super(message, cause, enableSuppression, writableStackTrace);
